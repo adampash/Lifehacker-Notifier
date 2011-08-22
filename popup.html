@@ -1,0 +1,70 @@
+<html>
+<head>
+	<script src='scripts/jquery-1.6.1.min.js'></script>
+	<script src="scripts/parse.js"></script>
+	<script>
+		var FEED_URL = 'http://lifehacker.com/index.xml';
+		function fetch_feed() {
+			// console.log('pass feed to background tab');
+			// display_stories(localStorage['last_xml_fetch']); //$.parseXML(response)
+			chrome.extension.sendRequest({'action' : 'fetch_feed', 'url' : FEED_URL}, 
+				function(response) {
+					// console.log('response is back in popup');
+					// // console.log(response);
+					
+					display_stories(response);
+				}
+			);
+		}
+		
+		function display_stories(feed_data) {
+			var xml_doc = $.parseXML(feed_data);
+			// console.log('displaying stories');
+			$xml = $(xml_doc);
+			// // console.log($xml.find("guid"));
+			var items = $xml.find("item");
+			$('#popup').html('<img src="images/lifehacker-logo.png" id="lifehacker-logo" onclick="open_item(\'http://lifehacker.com/\'); window.close();" /><br clear="all" />');
+			items.each(function(index, element) {
+				var post = parse_post(element);
+				var item = '';
+				var class2 = '';
+				if (index >= localStorage['unread_count']) {
+					// // console.log('visited');
+					item += '<div class="post read">';
+				}
+				else {
+					item += '<div class="post">'
+				}
+				// // console.log(description);
+				item += '<span class="tag">' + post.tag + '</span>\
+							<a href="' + post.url + '">\
+								<div id="' + post.id + '" class="item" onclick="open_item(\'' + post.url + '\');">\
+									<img src="' + post.img + '" width="107" height="60" />\
+									<h4>' + post.title + '</h4>\
+									<span class="description">' + post.description + '...</span>\
+								</div>\
+							</a>';
+				item += '</div>';
+				$('#popup').append(item);
+			});
+			localStorage['most_recent'] = $(items[0]).find("guid").text();
+			chrome.browserAction.setBadgeText({text:''});
+		}
+		
+	</script>
+	<!-- <link rel="stylesheet" type="text/css" href="styles/popup.css" /> -->
+	<link rel="stylesheet" href="styles/post.css" type="text/css" />
+</head>
+<body>
+	
+	<div id="popup">
+		
+	</div>
+	<script>
+		$(document).ready(function() {
+			fetch_feed();
+			display_stories(localStorage['last_response_data']);
+		});
+	</script>
+</body>
+</html>

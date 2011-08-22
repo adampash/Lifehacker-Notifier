@@ -1,0 +1,28 @@
+{
+  "name": "Lifehacker Notifier",
+  "version": "0.1.4",
+
+  "description": "Keep up with the latest from Lifehacker.",
+  "icons": { "16" : "images/icon.png",
+ 			"48" : "images/lifehacker.48.png",
+			"128" : "images/lifehacker.128.png"},
+  "homepage_url": "http://lifehacker.com/",
+  "content_scripts": [
+    {
+      "matches": ["http://lifehacker.com/*", "http://blog.lifehacker.com/"],
+      "js": ["scripts/jquery-1.6.1.min.js", "scripts/reset.js"]
+    }
+  ],
+	"background_page": "background.html",
+	"permissions": [
+	  "http://lifehacker.com/*",
+	  "http://feeds.gawker.com/*",
+	  "notifications"
+	],
+	"browser_action": {
+    "default_icon": "images/icon.png", 
+    "default_title": "Lifehacker",      
+    "default_popup": "popup.html"       
+  },
+  "options_page": "options.html"
+}

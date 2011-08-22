@@ -1,0 +1,98 @@
+<html>
+<head><title>Lifehacker Notifier Options</title></head>
+	<script src='scripts/jquery-1.6.1.min.js'></script>
+	<script type="text/javascript">
+
+// Saves options to localStorage.
+		function save_options() {
+		  var select = document.getElementById("color");
+		  var color = select.children[select.selectedIndex].value;
+		  localStorage["favorite_color"] = color;
+		
+		  // Update status to let user know options were saved.
+		  
+		  setTimeout(function() {
+		    status.innerHTML = "";
+		  }, 750);
+		}
+
+		// Restores select box state to saved value from localStorage.
+		function restore_options() {
+			$('input:checkbox').click(function() {
+				localStorage[this.id] = this.checked;
+				// console.log('call restore settings');
+				// chrome.tabs.sendRequest(parseInt(localStorage["tabID"]), {'action' : 'restore_settings'}, function(response) {
+				// 	// console.log(response);
+				// 	// // console.log('tab id is set to: ' + localStorage["tabID"]);
+				// });
+				$("#notification").text("Option saved.").show();
+			});	
+			$('input:checkbox').each(function(index) {
+				if (localStorage[this.id] === undefined && this.id != 'counter_reset') {
+					// // console.log('first run, setting to true');
+					localStorage[this.id] = 'true';
+				}
+				if (localStorage[this.id] == 'true') {
+					this.checked = true;
+				}
+				else {
+					this.checked = false;
+				}
+			});
+			
+		}
+
+	</script>
+	<style>
+		body {
+			font-family: 'Proxima Nova',arial,sans-serif;
+			color:#666;
+			margin:0;
+			padding:0;
+		}
+		
+		#container {
+			margin:25px;
+		}
+		
+		h1 {
+			background:#666;
+			color:white;
+			font-size:26px;
+			font-weight:normal;
+			padding:10px;
+		}
+		.item {
+			height:28px;
+		}
+		
+		#notification {
+			position:absolute;
+			top:60px;
+			left:430px;
+			height:15px;
+			padding:15px;
+			width:300px;
+			background:#FFFEA8;
+			-webkit-border-radius: 10px;
+			font-size:13px;
+		}
+	</style>
+
+<body onload="restore_options()">
+	<h1>Lifehacker Notifier Settings</h1>
+	<div id="container">
+		<div class="item"><input type="checkbox" name="notifications" value="notifications" id="notifications"> <label for="notifications">Show notifications when a new post is published</label><br /></div>
+		<div class="item"><input type="checkbox" name="counter_reset" value="counter_reset" id="counter_reset"> <label for="counter_reset">Reset unread badge when I visit the Lifehacker home page</label><br /></div>
+		<p>If you'd like to support development of this extension, please consider donating via PayPal:</p>
+		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+		<input type="hidden" name="cmd" value="_s-xclick">
+		<input type="hidden" name="hosted_button_id" value="78EUQRCU5M3H6">
+		<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+		<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+		</form>
+		
+	</div>
+	<div id="notification" style="display:none;">This is a notification</div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<html>
+<head>
+	<script src='scripts/jquery-1.6.1.min.js'></script>
+	<script src="scripts/parse.js"></script>
+	<script>
+		var DOMAIN = 'lifehacker.com';
+		var firstRun = (localStorage['firstRun'] == 'true');
+		if (!firstRun) {
+		  // Open the options page if this is the first run
+		  localStorage['firstRun'] = 'true';
+	  	  localStorage['read_items'] = "";
+		  localStorage['from_home_page'] = 'false';
+		  chrome.tabs.create({url: chrome.extension.getURL("options.html"), selected: true});
+		}
+		// var read_items = localStorage['read_items'].split(',');
+		
+		function fetch_feed(url, callback) {
+			// console.log('fetch feed');
+			var xhr = new XMLHttpRequest();
+		    xhr.onreadystatechange = function(data) {
+		      if (xhr.readyState == 4) {
+		        if (xhr.status == 200) {
+		          var data = xhr.responseText;
+				  localStorage['last_response_data'] = data;
+		          callback(data);
+		        } else {
+		          callback(null);
+		        }
+		      }
+		    }
+		    // Note that any URL fetched here must be matched by a permission in
+		    // the manifest.json file!
+		    // var url = last_url;
+		    xhr.open('GET', url, true);
+		    xhr.send();
+		}	
+		
+		function unread_count(response) {
+			// console.log('unread count called');
+			var xml_doc = $.parseXML(response);
+			// // console.log(xml_doc);
+			$xml = $(xml_doc);
+			var items = $xml.find("item");
+			var unread_count = 0;
+			items.each(function(index, element) {
+				// // console.log($(element).text());
+				var id = $(element).find("guid").text();
+				// console.log(index);
+				if (id != localStorage['most_recent']) {
+					unread_count++;
+					if (unread_count == 1 && localStorage['notifications'] == 'true' && localStorage['last_notified'] != id) {
+						// show an HTML5 notification
+						// console.log('show a notification');
+						show_notification(element);
+					}
+				}
+				else {
+					// console.log('Unread Count is: ' + unread_count);
+					// set badge # in extension icon
+					if (unread_count > 8) {
+						unread_count = String(unread_count) + '+';
+					}
+					else {
+						localStorage['from_home_page'] = 'false';
+					}
+					if (unread_count == 0) {
+						chrome.browserAction.setBadgeText({text:''});
+						localStorage['from_home_page'] = 'false';
+					}
+					else {
+						chrome.browserAction.setBadgeText({text:String(unread_count)});
+					}
+					localStorage['unread_count'] = unread_count;
+					return false; // returning false exits the loop
+				}
+				if (index > 8) { // stop executing loop if unread number is greater than 9
+					if (localStorage['from_home_page'] != 'true') {
+						chrome.browserAction.setBadgeText({text:'9+'});
+						localStorage['unread_count'] = 9;
+					}
+					else {
+						chrome.browserAction.setBadgeText({text:''});
+					}
+					return false;
+				}
+			});
+		}
+		
+		function show_notification(element) {
+			var post = parse_post(element);
+			localStorage['last_notified'] = post.id;			
+			localStorage['notification_title'] = post.title;
+			localStorage['notification_description'] = post.description;
+			localStorage['notification_img'] = post.img;
+			localStorage['notification_url'] = post.url;
+			localStorage['notification_id'] = post.id;
+			localStorage['notification_tag'] = post.tag;
+			var notification = webkitNotifications.createHTMLNotification('notification.html');
+			notification.show();
+		}
+		
+		function onRequest(request, sender, callback) {
+			if (request.action == 'fetch_feed') {
+	          fetch_feed(request.url, callback);
+	        }
+			else if (request.action == 'set_recent_from_homepage') {
+	          localStorage['most_recent'] = request.id;
+			  localStorage['last_notified'] = request.id;
+			  localStorage['from_home_page'] = true;
+			  chrome.browserAction.setBadgeText({text:''});
+			  callback('it worked');
+	        }
+			else if (request.action == 'counter_reset') { 
+				callback(localStorage['counter_reset']);
+			}
+		}
+		
+		// Wire up the listener.
+		chrome.extension.onRequest.addListener(onRequest);
+		$(document).ready(function() {
+			setInterval(function() {
+				fetch_feed('http://lifehacker.com/index.xml', function(response) {
+					unread_count(response);
+				});
+			}, 300000); // 300000 would be every five minutes
+			fetch_feed('http://lifehacker.com/index.xml', function(response) {
+				unread_count(response);
+			});
+		});
+		
+
+		
+	</script>
+</head>
+<body>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<link rel="stylesheet" href="styles/post.css" type="text/css" />
+		<style>
+			.item {
+				height:80px !important;
+				width:295px;
+			}
+			.item img {
+				margin-bottom:15px;
+			}
+			#notification {
+				width:400px;
+			}
+			
+			/* For some reason if I don't embed the CSS directly in this file, Chrome gets all buggy when the notification loads the first time, so... code below. */
+			
+		</style>
+		
+		
+		<script src='scripts/jquery-1.6.1.min.js'></script>
+		<script src="scripts/parse.js"></script>
+		<script>
+			function set_notification() {
+				$('#notification').html('<span class="tag">' + localStorage['notification_tag'] + '</span>\
+										<a href="' + localStorage['notification_url'] + '">\
+											<div id="' + localStorage['notification_id'] + '" class="item" onclick="open_item(\'' + localStorage['notification_url'] + '\'); window.close();">\
+												<img src="' + localStorage['notification_img'] + '" width="107" height="60" />\
+												<h4>' + localStorage['notification_title'] + '</h4>\
+											</div>\
+										</a>');
+				// console.log('notification done');
+				
+			}
+			$('body').ready(function() {
+				set_notification();
+				setTimeout(function() {
+								window.close();
+							}, 10000);
+			});
+		</script>
+		
+
+	</head>
+
+	<body>
+		<div id="notification">
+		</div>
+	</body>
+</html>
+
